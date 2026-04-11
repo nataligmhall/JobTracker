@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobTrack Pro | Tech Edition</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-mono: "JetBrains Mono", monospace;
+        }
+        body {
+            font-family: var(--font-sans);
+            background-color: #020617; /* Slate 950 */
+            color: #f1f5f9; /* Slate 100 */
+        }
+        .tech-border {
+            border: 1px solid #1e293b; /* Slate 800 */
+        }
+        .tech-card {
+            background-color: #0f172a; /* Slate 900 */
+            border: 1px solid #1e293b;
+        }
+        .mono {
+            font-family: var(--font-mono);
+        }
+        .status-pill {
+            @apply px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider mono;
+        }
+        .status-applied { @apply bg-blue-500/10 text-blue-400 border border-blue-500/20; }
+        .status-interviewing { @apply bg-purple-500/10 text-purple-400 border border-purple-500/20; }
+        .status-offered { @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20; }
+        .status-rejected { @apply bg-rose-500/10 text-rose-400 border border-rose-500/20; }
+        .status-wishlist { @apply bg-slate-500/10 text-slate-400 border border-slate-500/20; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        input, select, textarea {
+            background-color: #020617 !important;
+            border-color: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 1px #6366f1 !important;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+        <div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <div class="flex h-7 w-7 items-center justify-center rounded bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]">
+                    <i data-lucide="terminal" class="h-4 w-4"></i>
+                </div>
+                <span class="text-sm font-bold tracking-widest uppercase">JobTrack<span class="text-indigo-500">_v2</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="addJobBtn" class="flex items-center gap-2 rounded border border-indigo-500/50 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-400 transition-all hover:bg-indigo-500 hover:text-white active:scale-95">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                    <span>NEW_APPLICATION</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <!-- Stats Overview -->
+        <div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div class="tech-card p-5 rounded">
+                <div class="flex items-center justify-between opacity-50">
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Total_Apps</span>
+                    <i data-lucide="database" class="h-3 w-3"></i>
+                </div>
+                <div id="statTotal" class="mt-2 text-2xl font-medium mono">00</div>
+            </div>
+            <div class="tech-card p-5 rounded border-l-2 border-l-purple-500/50">
+                <div class="flex items-center justify-between opacity-50">
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Interviewing</span>
+                    <i data-lucide="cpu" class="h-3 w-3"></i>
+                </div>
+                <div id="statInterviewing" class="mt-2 text-2xl font-medium mono text-purple-400">00</div>
+            </div>
+            <div class="tech-card p-5 rounded border-l-2 border-l-emerald-500/50">
+                <div class="flex items-center justify-between opacity-50">
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Offered</span>
+                    <i data-lucide="check-circle" class="h-3 w-3"></i>
+                </div>
+                <div id="statOffered" class="mt-2 text-2xl font-medium mono text-emerald-400">00</div>
+            </div>
+            <div class="tech-card p-5 rounded border-l-2 border-l-rose-500/50">
+                <div class="flex items-center justify-between opacity-50">
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Rejected</span>
+                    <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+                </div>
+                <div id="statRejected" class="mt-2 text-2xl font-medium mono text-rose-400">00</div>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative flex-1 max-w-md">
+                <i data-lucide="search" class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"></i>
+                <input type="text" id="searchInput" placeholder="QUERY_COMPANY_OR_ROLE..." class="w-full rounded border border-slate-800 bg-slate-950 py-2 pl-10 pr-4 text-xs mono outline-none transition-all">
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+                <button class="filter-btn active whitespace-nowrap rounded border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[10px] font-bold uppercase text-indigo-400" data-status="all">ALL</button>
+                <button class="filter-btn whitespace-nowrap rounded border border-slate-800 bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase text-slate-500 hover:text-slate-300" data-status="Applied">Applied</button>
+                <button class="filter-btn whitespace-nowrap rounded border border-slate-800 bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase text-slate-500 hover:text-slate-300" data-status="Interviewing">Interviewing</button>
+                <button class="filter-btn whitespace-nowrap rounded border border-slate-800 bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase text-slate-500 hover:text-slate-300" data-status="Offered">Offered</button>
+                <button class="filter-btn whitespace-nowrap rounded border border-slate-800 bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase text-slate-500 hover:text-slate-300" data-status="Rejected">Rejected</button>
+            </div>
+        </div>
+
+        <!-- Job List -->
+        <div class="tech-card rounded overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase tracking-widest text-slate-500 border-b border-slate-800">
+                        <tr>
+                            <th class="px-6 py-4">Company_Role</th>
+                            <th class="px-6 py-4">Status_Flag</th>
+                            <th class="px-6 py-4">Timestamp</th>
+                            <th class="px-6 py-4 text-right">Operations</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobList" class="divide-y divide-slate-800/50">
+                        <!-- Jobs injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-24 text-center">
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded border border-slate-800 bg-slate-900 text-slate-700">
+                    <i data-lucide="hard-drive" class="h-6 w-6"></i>
+                </div>
+                <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400">No_Data_Found</h3>
+                <p class="mt-2 text-xs text-slate-600">Initialize your first application record.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="jobModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="w-full max-w-md overflow-hidden rounded border border-slate-800 bg-slate-950 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/50">
+                <h2 id="modalTitle" class="text-xs font-bold uppercase tracking-widest">Add_New_Record</h2>
+                <button id="closeModal" class="text-slate-500 hover:text-slate-300">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <form id="jobForm" class="p-6">
+                <input type="hidden" id="jobId">
+                <div class="space-y-5">
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Company_Name</label>
+                        <input type="text" id="company" required class="w-full rounded border border-slate-800 bg-slate-950 px-4 py-2 text-xs mono outline-none" placeholder="e.g. NVIDIA">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Position_Role</label>
+                        <input type="text" id="role" required class="w-full rounded border border-slate-800 bg-slate-950 px-4 py-2 text-xs mono outline-none" placeholder="e.g. Systems Engineer">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Status_Code</label>
+                            <select id="status" class="w-full rounded border border-slate-800 bg-slate-950 px-4 py-2 text-xs mono outline-none">
+                                <option value="Wishlist">Wishlist</option>
+                                <option value="Applied" selected>Applied</option>
+                                <option value="Interviewing">Interviewing</option>
+                                <option value="Offered">Offered</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Date_Applied</label>
+                            <input type="date" id="date" class="w-full rounded border border-slate-800 bg-slate-950 px-4 py-2 text-xs mono outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Metadata_Notes</label>
+                        <textarea id="notes" rows="3" class="w-full rounded border border-slate-800 bg-slate-950 px-4 py-2 text-xs mono outline-none" placeholder="Additional details..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex gap-3">
+                    <button type="button" id="cancelBtn" class="flex-1 rounded border border-slate-800 py-2 text-[10px] font-bold uppercase text-slate-500 hover:bg-slate-900">Abort</button>
+                    <button type="submit" class="flex-1 rounded bg-indigo-600 py-2 text-[10px] font-bold uppercase text-white hover:bg-indigo-700 shadow-[0_0_15px_rgba(79,70,229,0.3)]">Commit_Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let jobs = JSON.parse(localStorage.getItem('jobtrack_jobs_v2')) || [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // DOM
+        const jobList = document.getElementById('jobList');
+        const emptyState = document.getElementById('emptyState');
+        const jobModal = document.getElementById('jobModal');
+        const jobForm = document.getElementById('jobForm');
+        const addJobBtn = document.getElementById('addJobBtn');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        function init() {
+            lucide.createIcons();
+            renderJobs();
+            updateStats();
+            document.getElementById('date').valueAsDate = new Date();
+        }
+
+        function updateStats() {
+            const pad = (n) => n.toString().padStart(2, '0');
+            document.getElementById('statTotal').textContent = pad(jobs.length);
+            document.getElementById('statInterviewing').textContent = pad(jobs.filter(j => j.status === 'Interviewing').length);
+            document.getElementById('statOffered').textContent = pad(jobs.filter(j => j.status === 'Offered').length);
+            document.getElementById('statRejected').textContent = pad(jobs.filter(j => j.status === 'Rejected').length);
+        }
+
+        function renderJobs() {
+            const filteredJobs = jobs.filter(job => {
+                const matchesFilter = currentFilter === 'all' || job.status === currentFilter;
+                const matchesSearch = job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                    job.role.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filteredJobs.length === 0) {
+                jobList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+                jobList.innerHTML = filteredJobs.map(job => `
+                    <tr class="group hover:bg-slate-900/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-semibold text-slate-200">${job.company}</div>
+                            <div class="text-[10px] text-slate-500 mono uppercase tracking-tight">${job.role}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="status-pill status-${job.status.toLowerCase()}">${job.status}</span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 mono text-[10px]">
+                            ${job.date}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="editJob('${job.id}')" class="text-slate-500 hover:text-indigo-400 transition-colors">
+                                    <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <button onclick="deleteJob('${job.id}')" class="text-slate-500 hover:text-rose-400 transition-colors">
+                                    <i data-lucide="trash" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        jobForm.onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('jobId').value;
+            const jobData = {
+                id: id || Date.now().toString(),
+                company: document.getElementById('company').value,
+                role: document.getElementById('role').value,
+                status: document.getElementById('status').value,
+                date: document.getElementById('date').value,
+                notes: document.getElementById('notes').value
+            };
+
+            if (id) {
+                jobs = jobs.map(j => j.id === id ? jobData : j);
+            } else {
+                jobs.unshift(jobData);
+            }
+
+            saveAndRefresh();
+            toggleModal(false);
+        };
+
+        window.editJob = (id) => {
+            const job = jobs.find(j => j.id === id);
+            if (!job) return;
+
+            document.getElementById('modalTitle').textContent = 'Modify_Record';
+            document.getElementById('jobId').value = job.id;
+            document.getElementById('company').value = job.company;
+            document.getElementById('role').value = job.role;
+            document.getElementById('status').value = job.status;
+            document.getElementById('date').value = job.date;
+            document.getElementById('notes').value = job.notes;
+
+            toggleModal(true);
+        };
+
+        window.deleteJob = (id) => {
+            if (confirm('Confirm deletion of record?')) {
+                jobs = jobs.filter(j => j.id !== id);
+                saveAndRefresh();
+            }
+        };
+
+        function saveAndRefresh() {
+            localStorage.setItem('jobtrack_jobs_v2', JSON.stringify(jobs));
+            renderJobs();
+            updateStats();
+        }
+
+        function toggleModal(show) {
+            jobModal.classList.toggle('hidden', !show);
+            jobModal.classList.toggle('flex', show);
+            if (!show) {
+                jobForm.reset();
+                document.getElementById('jobId').value = '';
+                document.getElementById('modalTitle').textContent = 'Add_New_Record';
+                document.getElementById('date').valueAsDate = new Date();
+                document.getElementById('status').value = 'Applied';
+            }
+        }
+
+        addJobBtn.onclick = () => toggleModal(true);
+        closeModal.onclick = () => toggleModal(false);
+        cancelBtn.onclick = () => toggleModal(false);
+
+        searchInput.oninput = (e) => {
+            searchQuery = e.target.value;
+            renderJobs();
+        };
+
+        filterBtns.forEach(btn => {
+            btn.onclick = () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'border-indigo-500/30', 'bg-indigo-500/10', 'text-indigo-400');
+                    b.classList.add('border-slate-800', 'bg-slate-900', 'text-slate-500');
+                });
+                btn.classList.add('active', 'border-indigo-500/30', 'bg-indigo-500/10', 'text-indigo-400');
+                btn.classList.remove('border-slate-800', 'bg-slate-900', 'text-slate-500');
+                currentFilter = btn.dataset.status;
+                renderJobs();
+            };
+        });
+
+        jobModal.onclick = (e) => {
+            if (e.target === jobModal) toggleModal(false);
+        };
+
+        init();
+    </script>
+</body>
+</html>
